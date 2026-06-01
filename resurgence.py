@@ -114,24 +114,20 @@ def cmd_show():
 
     owned = read_owned()
 
-    type_map = {"Warframe": "Warframe"}
-    for t in ("Melee", "Primary", "Secondary"):
-        type_map[f"Weapon ({t})"] = t
-
-    warframes = [(n, t) for n, t in current if t == "Warframe"]
-    weapons = [(n, type_map.get(t, t)) for n, t in current if t != "Warframe"]
+    warframes = [n for n, t in current if t == "Warframe"]
+    weapons = [n for n, t in current if t != "Warframe"]
 
     print("Currently available Prime Warframes & Weapons:")
     if warframes:
         print("  Warframes:")
-        for name, _ in warframes:
+        for name in warframes:
             mark = " ✓" if name in owned else ""
             print(f"    {name}{mark}")
     if weapons:
         print("  Weapons:")
-        for name, wtype in weapons:
+        for name in weapons:
             mark = " ✓" if name in owned else ""
-            print(f"    {(name + mark):<30} {wtype}")
+            print(f"    {name}{mark}")
 
 
 def cmd_owned():
@@ -139,9 +135,25 @@ def cmd_owned():
     if not owned:
         print("No owned items recorded.")
         return
+
+    current = get_current_items()
+    warframes = sorted(n for n, t in current if t == "Warframe" and n in owned)
+    weapons = sorted(n for n, t in current if t != "Warframe" and n in owned)
+    other = sorted(owned - {n for n, _ in current})
+
     print("Owned Prime equipment:")
-    for name in sorted(owned):
-        print(f"  {name}")
+    if warframes:
+        print("  Warframes:")
+        for name in warframes:
+            print(f"    {name}")
+    if weapons:
+        print("  Weapons:")
+        for name in weapons:
+            print(f"    {name}")
+    if other:
+        print("  Other:")
+        for name in other:
+            print(f"    {name}")
 
 
 def cmd_add(names: list[str]):
