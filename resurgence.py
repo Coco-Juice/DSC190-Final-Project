@@ -1,7 +1,13 @@
+import argparse
+import csv
 import re
 import urllib.request
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
 from bs4 import BeautifulSoup
+
+OWNED_CSV = Path(__file__).parent / "owned_prime.csv"
 
 
 def get_next_offering(url: str = "https://wiki.warframe.com/w/Prime_Resurgence") -> datetime:
@@ -73,7 +79,28 @@ def get_current_items(url: str = "https://wiki.warframe.com/w/Prime_Resurgence")
     return items
 
 
-def main():
+def read_owned() -> set[str]:
+    if not OWNED_CSV.exists():
+        return set()
+    with OWNED_CSV.open(newline="") as f:
+        return {row["name"].strip().title() for row in csv.DictReader(f) if row["name"].strip()}
+
+
+def add_owned(name: str) -> bool:
+    name = name.title()
+    owned = read_owned()
+    if name in owned:
+        return False
+    needs_header = not OWNED_CSV.exists() or OWNED_CSV.stat().st_size == 0
+    with OWNED_CSV.open("a", newline="") as f:
+        w = csv.writer(f)
+        if needs_header:
+            w.writerow(["name"])
+        w.writerow([name])
+    return True
+
+
+def cmd_show():
     next_date = get_next_offering()
     remaining = next_date - datetime.now(timezone.utc)
     days = remaining.days
@@ -85,6 +112,8 @@ def main():
         print("No Warframes or Weapons currently available.")
         return
 
+    owned = read_owned()
+
     type_map = {"Warframe": "Warframe"}
     for t in ("Melee", "Primary", "Secondary"):
         type_map[f"Weapon ({t})"] = t
@@ -92,15 +121,54 @@ def main():
     warframes = [(n, t) for n, t in current if t == "Warframe"]
     weapons = [(n, type_map.get(t, t)) for n, t in current if t != "Warframe"]
 
-    print("Currently available Prime Warframes & Weapons:\n")
+    print("Currently available Prime Warframes & Weapons:")
     if warframes:
         print("  Warframes:")
         for name, _ in warframes:
-            print(f"    {name}")
+            mark = " ✓" if name in owned else ""
+            print(f"    {name}{mark}")
     if weapons:
         print("  Weapons:")
         for name, wtype in weapons:
-            print(f"    {name:<30} {wtype}")
+            mark = " ✓" if name in owned else ""
+            print(f"    {(name + mark):<30} {wtype}")
+
+
+def cmd_owned():
+    owned = read_owned()
+    if not owned:
+        print("No owned items recorded.")
+        return
+    print("Owned Prime equipment:")
+    for name in sorted(owned):
+        print(f"  {name}")
+
+
+def cmd_add(names: list[str]):
+    for name in names:
+        name = name.title()
+        if add_owned(name):
+            print(f"Added: {name}")
+        else:
+            print(f"Already owned: {name}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Prime Resurgence tracker")
+    sub = parser.add_subparsers(dest="command")
+    sub.add_parser("show", help="Show current offerings with owned checkmarks")
+    add_p = sub.add_parser("add", help="Mark item(s) as owned")
+    add_p.add_argument("names", nargs="+", help="Item name(s) to mark as owned")
+    sub.add_parser("owned", help="List all owned items")
+
+    args = parser.parse_args()
+
+    if args.command == "add":
+        cmd_add(args.names)
+    elif args.command == "owned":
+        cmd_owned()
+    else:
+        cmd_show()
 
 
 if __name__ == "__main__":
