@@ -200,19 +200,10 @@ def cmd_owned():
             print(f"    {name}")
 
 
-def cmd_add(names: list[str], equip_type: str | None):
-    type_lookup: dict[str, str] = {}
-    if not equip_type:
-        try:
-            all_types = get_all_item_types()
-            type_lookup = {n: "Warframe" if t == "Warframe" else "Weapon" for n, t in all_types.items()}
-        except Exception:
-            pass
-
+def cmd_add(names: list[str], equip_type: str):
     for name in names:
         name = name.title()
-        t = equip_type or type_lookup.get(name)
-        if add_owned(name, t):
+        if add_owned(name, equip_type):
             print(f"Added: {name}")
         else:
             print(f"Already owned: {name}")
@@ -224,7 +215,7 @@ def main():
     sub.add_parser("show", help="Show current offerings with owned checkmarks")
     add_p = sub.add_parser("add", help="Mark item(s) as owned")
     add_p.add_argument("names", nargs="+", help="Item name(s) to mark as owned")
-    add_p.add_argument("--type", choices=["Warframe", "Weapon"], help="Category of the item(s)")
+    add_p.add_argument("--type", choices=["Warframe", "Weapon"], required=True, help="Category of the item(s)")
     sub.add_parser("owned", help="List all owned items")
 
     args = parser.parse_args()
