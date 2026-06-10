@@ -103,6 +103,9 @@ def get_all_item_types(url: str = "https://wiki.warframe.com/w/Prime_Resurgence"
 
 def read_owned() -> dict[str, str | None]:
     if not OWNED_CSV.exists():
+        OWNED_CSV.parent.mkdir(parents=True, exist_ok=True)
+        with OWNED_CSV.open("w", newline="") as f:
+            csv.writer(f).writerow(["name", "type"])
         return {}
     out: dict[str, str | None] = {}
     with OWNED_CSV.open(newline="") as f:
