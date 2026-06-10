@@ -3,7 +3,7 @@ name = "prime-resurgence-tracker"
 version = "0.1.0"
 description = "CLI tool to track Warframe Prime Resurgence offerings against owned items"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "beautifulsoup4",
     "bs4>=0.0.2",
