@@ -10,7 +10,7 @@ pip install -e .
 
 Requires Python 3.13+.
 
-## Commands
+## Usage
 
 ### `show`
 
