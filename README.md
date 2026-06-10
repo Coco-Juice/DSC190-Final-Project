@@ -37,15 +37,12 @@ Currently available Prime Warframes & Weapons:
 
 ### `add`
 
-Marks one or more items as owned. Items are stored in `owned_prime.csv` and deduplicated automatically (title-case matching).
+Marks one or more items as owned. `--type` is required (either `Warframe` or `Weapon`). Items are stored in `owned_prime.csv` and deduplicated automatically (title-case matching).
 
 ```bash
-python resurgence.py add "Khora Prime"
-python resurgence.py add "Panthera Prime" "Corinth Prime"
-python resurgence.py add "Garuda Prime" --type Warframe
+python resurgence.py add "Khora Prime" --type Warframe
+python resurgence.py add "Panthera Prime" "Corinth Prime" --type Weapon
 ```
-
-If `--type` is omitted, the tool auto-detects the category by scraping the wiki.
 
 ### `owned`
 
